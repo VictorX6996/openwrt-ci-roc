@@ -310,25 +310,23 @@ jobs:
         cd "$OPENWRT_PATH"/bin/targets/*/*
         cp "$OPENWRT_PATH/.config" "$ARTIFACT_PREFIX.config"
         mv config.buildinfo "$ARTIFACT_PREFIX.config.buildinfo"
+
         manifest_file=""
+        if [ -f "$MANIFEST_FILE" ]; then
+          manifest_file="$MANIFEST_FILE"
+        else
+          echo "Expected manifest not found: $MANIFEST_FILE"
+          echo "Searching for generated manifests..."
+          find . -maxdepth 1 -type f -name '*.manifest' -print
 
-if [ -f "$MANIFEST_FILE" ]; then
-  manifest_file="$MANIFEST_FILE"
-else
-  echo "Expected manifest not found: $MANIFEST_FILE"
-  echo "Searching for generated manifests..."
+          manifest_file=$(find . -maxdepth 1 -type f -name '*.manifest' -print -quit)
 
-  find . -maxdepth 1 -type f -name '*.manifest' -print
-
-  manifest_file=$(find . -maxdepth 1 -type f -name '*.manifest' -print -quit)
-
-  if [ -z "$manifest_file" ]; then
-    echo "Error: no manifest generated in $PWD" >&2
-    exit 1
-  fi
-fi
-
-mv "$manifest_file" "$ARTIFACT_PREFIX.manifest"
+          if [ -z "$manifest_file" ]; then
+            echo "Error: no manifest generated in $PWD" >&2
+            exit 1
+          fi
+        fi
+        mv "$manifest_file" "$ARTIFACT_PREFIX.manifest"
         case "$PACKAGE_EXTENSION" in
           apk | ipk) ;;
           *)
